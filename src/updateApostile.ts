@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import { db } from "./dbInit";
 
 type Slot = {
   id: string;
@@ -34,6 +35,13 @@ const getSlotsAndDate = async (day: number) => {
 
   slots.forEach((slot: Slot) => {
     console.log(`Date: ${date}, Time: ${slot.time}`);
+
+		const slotInfo = date + " " + slot.time;
+
+		if(!db.has(slotInfo)) {
+			db.set(slotInfo, true);
+			console.log(`New slot found: ${slotInfo}`);
+		}
   });
 };
 
