@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer";
 import { db } from "./dbInit";
+import { notifyChatsWithNewSlot } from "./bot";
 
 type Slot = {
   id: string;
@@ -33,18 +34,20 @@ const getSlotsAndDate = async (day: number) => {
   const data = await getSlotsInfo(date);
 	const slots: Slot[] = data?.slots || [];
 
-  slots.forEach((slot: Slot) => {
-    console.log(`Date: ${date}, Time: ${slot.time}`);
+	const slotsDBInfo: Array<string> = db.get("slots") || [];
 
+  slots.forEach((slot: Slot) => {
+		slotsDBInfo.push(`Date: ${date}, Time: ${slot.time} \n`);
 		const slotInfo = date + " " + slot.time;
 
 		if(!db.has(slotInfo)) {
 			db.set(slotInfo, true);
-			console.log(`New slot found: ${slotInfo}`);
+			notifyChatsWithNewSlot(slotInfo);
 		}
   });
 
 	db.set("lastUpdate", new Date().toISOString());
+	db.set("slots", slotsDBInfo);
 };
 
 export const updateApostileInfo = async (days: number = 10) => {
@@ -57,6 +60,7 @@ export const updateApostileInfo = async (days: number = 10) => {
   await page.setViewport({ width: 1080, height: 1024 });
 
   for (let i = 0; i < days; i++) {
+		db.delete("slots");
     getSlotsAndDate(i);
   }
 
