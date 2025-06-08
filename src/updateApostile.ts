@@ -43,6 +43,8 @@ const getSlotsAndDate = async (day: number) => {
 			console.log(`New slot found: ${slotInfo}`);
 		}
   });
+
+	db.set("lastUpdate", new Date().toISOString());
 };
 
 export const updateApostileInfo = async (days: number = 10) => {
