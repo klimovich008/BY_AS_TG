@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer-core";
 import { db } from "./dbInit";
 import { notifyChatsWithNewSlot } from "./bot";
+import { executablePath } from "puppeteer";
 
 type Slot = {
   id: string;
@@ -32,36 +33,36 @@ const getSlotsInfo = async (date: string) => {
 const getSlotsAndDate = async (day: number) => {
   const date = generateDateForNDaysInTheFuture(day);
   const data = await getSlotsInfo(date);
-	// @ts-ignore
-	const slots: Slot[] = data?.slots || [];
+  // @ts-ignore
+  const slots: Slot[] = data?.slots || [];
 
-	const slotsDBInfo: Array<string> = db.get("slots") || [];
+  const slotsDBInfo: Array<string> = db.get("slots") || [];
 
   slots.forEach((slot: Slot) => {
-		slotsDBInfo.push(`Date: ${date}, Time: ${slot.time} \n`);
-		const slotInfo = date + " " + slot.time;
+    slotsDBInfo.push(`Date: ${date}, Time: ${slot.time} \n`);
+    const slotInfo = date + " " + slot.time;
 
-		if(!db.has(slotInfo)) {
-			db.set(slotInfo, true);
-			notifyChatsWithNewSlot(slotInfo);
-		}
+    if (!db.has(slotInfo)) {
+      db.set(slotInfo, true);
+      notifyChatsWithNewSlot(slotInfo);
+    }
   });
 
-	db.set("lastUpdate", new Date().toISOString());``
-	db.set("slots", slotsDBInfo);
+  db.set("lastUpdate", new Date().toISOString());
+  db.set("slots", slotsDBInfo);
 };
 
 export const updateApostileInfo = async (days: number = 10) => {
-		// Launch the browser and open a new blank page
-	const browser = await puppeteer.launch();
-	const page = await browser.newPage();
+  // Launch the browser and open a new blank page
+  const browser = await puppeteer.launch({ executablePath: executablePath() });
+  const page = await browser.newPage();
 
   // Navigate the page to a URL.
   await page.goto("https://dkko.edu.gov.by/apostil");
   await page.setViewport({ width: 1080, height: 1024 });
 
   for (let i = 0; i < days; i++) {
-		db.delete("slots");
+    db.delete("slots");
     getSlotsAndDate(i);
   }
 
