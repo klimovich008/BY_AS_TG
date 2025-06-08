@@ -32,6 +32,7 @@ const getSlotsInfo = async (date: string) => {
 const getSlotsAndDate = async (day: number) => {
   const date = generateDateForNDaysInTheFuture(day);
   const data = await getSlotsInfo(date);
+	// @ts-ignore
 	const slots: Slot[] = data?.slots || [];
 
 	const slotsDBInfo: Array<string> = db.get("slots") || [];
@@ -46,7 +47,7 @@ const getSlotsAndDate = async (day: number) => {
 		}
   });
 
-	db.set("lastUpdate", new Date().toISOString());
+	db.set("lastUpdate", new Date().toISOString());``
 	db.set("slots", slotsDBInfo);
 };
 
