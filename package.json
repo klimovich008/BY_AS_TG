@@ -36,6 +36,7 @@
     "@digitak/tsc-esm": "^3.1.4",
     "node-cron": "^4.1.0",
     "puppeteer": "^24.10.0",
+    "puppeteer-core": "^24.10.0",
     "simple-json-db": "^2.0.0",
     "telegraf": "^4.16.3"
   }
