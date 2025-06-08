@@ -1,7 +1,6 @@
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer";
 import { db } from "./dbInit";
 import { notifyChatsWithNewSlot } from "./bot";
-import { executablePath } from "puppeteer";
 
 type Slot = {
   id: string;
@@ -54,7 +53,10 @@ const getSlotsAndDate = async (day: number) => {
 
 export const updateApostileInfo = async (days: number = 10) => {
   // Launch the browser and open a new blank page
-  const browser = await puppeteer.launch({ executablePath: executablePath() });
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    ignoreDefaultArgs: ["--disable-extensions"],
+  });
   const page = await browser.newPage();
 
   // Navigate the page to a URL.
