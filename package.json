@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx --env-file=.env --watch src/index.ts",
     "start": "node dist/src/index.js",
-    "build": "tsc",
+    "build": "tsc-esm",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -33,6 +33,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@digitak/tsc-esm": "^3.1.4",
     "node-cron": "^4.1.0",
     "puppeteer": "^24.10.0",
     "simple-json-db": "^2.0.0",
