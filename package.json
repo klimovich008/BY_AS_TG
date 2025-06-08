@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx --env-file=.env --watch src/index.ts",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
@@ -21,7 +21,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/klimovich008/BY_AS_TG/issues"
   },
