@@ -4,7 +4,7 @@ import { launchBot } from "./bot";
 
 launchBot();
 
-cron.schedule("* * * * *", () => {
+cron.schedule("* 5 * * *", () => {
 	console.log("Running cron job to update apostile info...");
-	updateApostileInfo(10);
+	updateApostileInfo(20);
 });
