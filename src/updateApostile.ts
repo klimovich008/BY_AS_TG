@@ -8,11 +8,9 @@ type Slot = {
   time: string;
 };
 
-
 type Data = {
-  slots: Slot[]
-}
-
+  slots: Slot[];
+};
 
 const generateDateForNDaysInTheFuture = (N: number) => {
   const date = new Date();
@@ -33,7 +31,7 @@ const getSlotsInfo = async (date: string): Promise<Data> => {
     }
   );
 
-  return await responce.json() as Data;
+  return (await responce.json()) as Data;
 };
 
 const getSlotsAndDate = async (day: number) => {
@@ -44,7 +42,7 @@ const getSlotsAndDate = async (day: number) => {
   const { slots } = await connectToMongo();
 
   let slotsToInsert = [];
-  
+
   for (const slot of slotsArr) {
     const slotInfo = `Date: ${date}, Time: ${slot.time}`;
     const exists = await slots.findOne({ info: slotInfo });
@@ -70,14 +68,15 @@ export const updateApostileInfo = async (days: number = 10) => {
 
   const { meta } = await connectToMongo();
 
-  const updatedSlots = []
+  const updatedSlots = [];
 
   for (let i = 0; i < days; i++) {
-    updatedSlots.push(...await getSlotsAndDate(i));
+    updatedSlots.push(...(await getSlotsAndDate(i)));
   }
 
   slots.deleteMany({});
-  await slots.insertMany(updatedSlots.map(info => ({ info })));
+  if (updatedSlots.length)
+    await slots.insertMany(updatedSlots.map((info) => ({ info })));
 
   await meta.updateOne(
     { key: "lastUpdate" },
