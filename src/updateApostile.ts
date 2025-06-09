@@ -1,11 +1,17 @@
 import puppeteer from "puppeteer";
-import { db } from "./dbInit";
+import { connectToMongo } from "./dbInit";
 import { notifyChatsWithNewSlot } from "./bot";
 
 type Slot = {
   id: string;
   time: string;
 };
+
+
+type Data = {
+  slots: Slot[]
+}
+
 
 const generateDateForNDaysInTheFuture = (N: number) => {
   const date = new Date();
@@ -15,7 +21,7 @@ const generateDateForNDaysInTheFuture = (N: number) => {
   return isoDate.substring(0, isoDate.indexOf("T"));
 };
 
-const getSlotsInfo = async (date: string) => {
+const getSlotsInfo = async (date: string): Promise<Data> => {
   const responce = await fetch(
     "https://api.dkko.edu.gov.by/api/order-units/visits/slots?numberOfDocs=1&date=" +
       date,
@@ -26,47 +32,48 @@ const getSlotsInfo = async (date: string) => {
     }
   );
 
-  return await responce.json();
+  return await responce.json() as Data;
 };
 
 const getSlotsAndDate = async (day: number) => {
   const date = generateDateForNDaysInTheFuture(day);
   const data = await getSlotsInfo(date);
-  // @ts-ignore
-  const slots: Slot[] = data?.slots || [];
+  const slotsArr: Slot[] = data?.slots || [];
 
-  const slotsDBInfo: Array<string> = db.get("slots") || [];
+  const { slots } = await connectToMongo();
 
-  slots.forEach((slot: Slot) => {
-    slotsDBInfo.push(`Date: ${date}, Time: ${slot.time} \n`);
-    const slotInfo = date + " " + slot.time;
+  for (const slot of slotsArr) {
+    const slotInfo = `Date: ${date}, Time: ${slot.time} \n`;
+    const exists = await slots.findOne({ info: slotInfo });
 
-    if (!db.has(slotInfo)) {
-      db.set(slotInfo, true);
-      notifyChatsWithNewSlot(slotInfo);
+    if (!exists) {
+      await slots.insertOne({ info: slotInfo });
+      await notifyChatsWithNewSlot(slotInfo);
     }
-  });
-
-  db.set("lastUpdate", new Date().toISOString());
-  db.set("slots", slotsDBInfo);
+  }
 };
 
 export const updateApostileInfo = async (days: number = 10) => {
-  // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     ignoreDefaultArgs: ["--disable-extensions"],
   });
   const page = await browser.newPage();
-
-  // Navigate the page to a URL.
   await page.goto("https://dkko.edu.gov.by/apostil");
   await page.setViewport({ width: 1080, height: 1024 });
 
+  const { slots, meta } = await connectToMongo();
+  await slots.deleteMany({});
+
   for (let i = 0; i < days; i++) {
-    db.delete("slots");
-    getSlotsAndDate(i);
+    await getSlotsAndDate(i);
   }
+
+  await meta.updateOne(
+    { key: "lastUpdate" },
+    { $set: { value: new Date().toISOString() } },
+    { upsert: true }
+  );
 
   await browser.close();
 };
