@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import { connectToMongo } from "./dbInit";
 import { notifyChatsWithNewSlot } from "./bot";
+import { slots } from "./mongoInit";
 
 type Slot = {
   id: string;
@@ -42,15 +43,20 @@ const getSlotsAndDate = async (day: number) => {
 
   const { slots } = await connectToMongo();
 
+  let slotsToInsert = [];
+  
   for (const slot of slotsArr) {
-    const slotInfo = `Date: ${date}, Time: ${slot.time} \n`;
+    const slotInfo = `Date: ${date}, Time: ${slot.time}`;
     const exists = await slots.findOne({ info: slotInfo });
 
+    slotsToInsert.push(slotInfo);
+
     if (!exists) {
-      await slots.insertOne({ info: slotInfo });
       await notifyChatsWithNewSlot(slotInfo);
     }
   }
+
+  return slotsToInsert;
 };
 
 export const updateApostileInfo = async (days: number = 10) => {
@@ -62,12 +68,16 @@ export const updateApostileInfo = async (days: number = 10) => {
   await page.goto("https://dkko.edu.gov.by/apostil");
   await page.setViewport({ width: 1080, height: 1024 });
 
-  const { slots, meta } = await connectToMongo();
-  await slots.deleteMany({});
+  const { meta } = await connectToMongo();
+
+  const updatedSlots = []
 
   for (let i = 0; i < days; i++) {
-    await getSlotsAndDate(i);
+    updatedSlots.push(...await getSlotsAndDate(i));
   }
+
+  slots.deleteMany({});
+  await slots.insertMany(updatedSlots.map(info => ({ info })));
 
   await meta.updateOne(
     { key: "lastUpdate" },

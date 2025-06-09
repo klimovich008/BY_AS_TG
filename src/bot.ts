@@ -1,11 +1,21 @@
 import { Telegraf } from "telegraf";
 import { connectToMongo } from "./dbInit";
+import { DAYS_TO_CHECK } from ".";
 
 console.log("Bot is starting...");
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "");
 bot.start(async (ctx) => {
-  ctx.reply("Привет! Я бот для отслеживания свободных слотов для апостиля.");
+  ctx.reply("Привет! Я бот для отслеживания свободных слотов для апостиля.",{
+    reply_markup: {
+      keyboard: [
+        [{ text: "/status" }, { text: "/slots" }],
+        [{ text: "/help" }]
+      ],
+      resize_keyboard: true,
+      one_time_keyboard: true
+    }
+  });
   const { chats } = await connectToMongo();
   const chatId = ctx.chat.id;
   const exists = await chats.findOne({ chatId });
@@ -24,6 +34,7 @@ bot.command("status", async (ctx) => {
   const replyMessage = `
     Текущий статус бота:
     - Бот запущен и работает.
+    - Количество дней для проверки слотов: ${DAYS_TO_CHECK}
     - Количество чатов для уведомлений: ${chatCount}
     - Последнее обновление слотов: ${
       lastUpdate
@@ -47,11 +58,21 @@ bot.command("slots", async (ctx) => {
   }
 });
 
+bot.hears("/help", (ctx) => 
+  ctx.reply([
+    "Доступные команды:",
+    "/status — статус бота",
+    "/slots — показать слоты",
+    "/help — показать это сообщение"
+  ].join("\n"))
+);
+
 bot.launch();
 
 export const notifyChatsWithNewSlot = async (slotInfo: string) => {
   const { chats } = await connectToMongo();
   const chatDocs = await chats.find().toArray();
+
   for (const chat of chatDocs) {
     bot.telegram.sendMessage(
       chat.chatId,

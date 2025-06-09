@@ -3,7 +3,7 @@ import { updateApostileInfo } from "./updateApostile";
 import { launchBot } from "./bot";
 import { connectToMongo } from "./dbInit";
 
-const DAYS_TO_CHECK = Number(process.env.DAYS_TO_CHECK) || 30;
+export const DAYS_TO_CHECK = Number(process.env.DAYS_TO_CHECK) || 30;
 
 (async () => {
 	await connectToMongo();
