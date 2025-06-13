@@ -74,7 +74,7 @@ export const updateApostileInfo = async (days: number = 10) => {
     updatedSlots.push(...(await getSlotsAndDate(i)));
   }
 
-  slots.deleteMany({});
+  await slots.deleteMany({});
   if (updatedSlots.length)
     await slots.insertMany(updatedSlots.map((info) => ({ info })));
 
