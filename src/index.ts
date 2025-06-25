@@ -11,10 +11,6 @@ export const DAYS_TO_CHECK = Number(process.env.DAYS_TO_CHECK) || 30;
 
   cron.schedule("*/5 * * * *", async () => {
     console.log("Running cron job to update apostile info...");
-    try {
-      await updateApostileInfo(DAYS_TO_CHECK);
-    } catch (error) {
-      console.error("Error during cron job execution:", error);
-    }
+    await updateApostileInfo(DAYS_TO_CHECK);
   });
 })();

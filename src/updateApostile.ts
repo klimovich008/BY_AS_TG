@@ -25,6 +25,7 @@ const getSlotsInfo = async (date: string): Promise<Data> => {
     "https://api.dkko.edu.gov.by/api/order-units/visits/slots?numberOfDocs=1&date=" +
       date,
     {
+      signal: AbortSignal.timeout(600000),
       headers: {
         "x-api-token": "ec6aab37-f042-4f9d-baaf-bf8069124976",
       },
@@ -64,26 +65,33 @@ export const updateApostileInfo = async (days: number = 10) => {
   });
   const page = await browser.newPage();
 
-  await page.goto("https://dkko.edu.gov.by/apostil", { waitUntil: "domcontentloaded", timeout: 0 });
-  await page.setViewport({ width: 1080, height: 1024 });
+  try {
+    await page.goto("https://dkko.edu.gov.by/apostil", {
+      waitUntil: "domcontentloaded",
+      timeout: 0,
+    });
 
-  const { meta } = await connectToMongo();
+    await page.setViewport({ width: 1080, height: 1024 });
 
-  const updatedSlots = [];
+    const { meta } = await connectToMongo();
 
-  for (let i = 0; i < days; i++) {
-    updatedSlots.push(...(await getSlotsAndDate(i)));
+    const updatedSlots = [];
+
+    for (let i = 0; i < days; i++) {
+      updatedSlots.push(...(await getSlotsAndDate(i)));
+    }
+
+    await slots.deleteMany({});
+    if (updatedSlots.length)
+      await slots.insertMany(updatedSlots.map((info) => ({ info })));
+
+    await meta.updateOne(
+      { key: "lastUpdate" },
+      { $set: { value: new Date().toISOString() } },
+      { upsert: true }
+    );
+  } catch (error) {
+    console.error("Error updating apostile info:", error);
+    await browser.close();
   }
-
-  await slots.deleteMany({});
-  if (updatedSlots.length)
-    await slots.insertMany(updatedSlots.map((info) => ({ info })));
-
-  await meta.updateOne(
-    { key: "lastUpdate" },
-    { $set: { value: new Date().toISOString() } },
-    { upsert: true }
-  );
-
-  await browser.close();
 };
