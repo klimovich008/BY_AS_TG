@@ -6,15 +6,15 @@ console.log("Bot is starting...");
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "");
 bot.start(async (ctx) => {
-  ctx.reply("Привет! Я бот для отслеживания свободных слотов для апостиля.",{
+  ctx.reply("Привет! Я бот для отслеживания свободных слотов для апостиля.", {
     reply_markup: {
       keyboard: [
         [{ text: "/status" }, { text: "/slots" }],
-        [{ text: "/help" }]
+        [{ text: "/help" }],
       ],
       resize_keyboard: true,
-      one_time_keyboard: true
-    }
+      one_time_keyboard: true,
+    },
   });
   const { chats } = await connectToMongo();
   const chatId = ctx.chat.id;
@@ -58,13 +58,15 @@ bot.command("slots", async (ctx) => {
   }
 });
 
-bot.hears("/help", (ctx) => 
-  ctx.reply([
-    "Доступные команды:",
-    "/status — статус бота",
-    "/slots — показать слоты",
-    "/help — показать это сообщение"
-  ].join("\n"))
+bot.hears("/help", (ctx) =>
+  ctx.reply(
+    [
+      "Доступные команды:",
+      "/status — статус бота",
+      "/slots — показать слоты",
+      "/help — показать это сообщение",
+    ].join("\n")
+  )
 );
 
 bot.launch();
@@ -74,10 +76,14 @@ export const notifyChatsWithNewSlot = async (slotInfo: string) => {
   const chatDocs = await chats.find().toArray();
 
   for (const chat of chatDocs) {
-    bot.telegram.sendMessage(
-      chat.chatId,
-      `Новый слот для апостиля: ${slotInfo}`
-    );
+    try {
+      await bot.telegram.sendMessage(
+        chat.chatId,
+        `Новый слот для апостиля: ${slotInfo}`
+      );
+    } catch (error) {
+      console.error(`Failed to send message to chat ${chat.chatId}:`, error);
+    }
   }
 };
 
