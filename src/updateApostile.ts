@@ -63,6 +63,7 @@ export const updateApostileInfo = async (days: number = 10) => {
     ignoreDefaultArgs: ["--disable-extensions"],
   });
   const page = await browser.newPage();
+  page.setDefaultTimeout(100000);
   await page.goto("https://dkko.edu.gov.by/apostil");
   await page.setViewport({ width: 1080, height: 1024 });
 
