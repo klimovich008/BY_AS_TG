@@ -9,10 +9,10 @@ export const DAYS_TO_CHECK = Number(process.env.DAYS_TO_CHECK) || 30;
   await connectToMongo();
   await launchBot();
 
-  cron.schedule("*/5 * * * *", () => {
+  cron.schedule("*/5 * * * *", async () => {
     console.log("Running cron job to update apostile info...");
     try {
-      updateApostileInfo(DAYS_TO_CHECK);
+      await updateApostileInfo(DAYS_TO_CHECK);
     } catch (error) {
       console.error("Error during cron job execution:", error);
     }
