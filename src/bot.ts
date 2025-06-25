@@ -82,6 +82,7 @@ export const notifyChatsWithNewSlot = async (slotInfo: string) => {
         `Новый слот для апостиля: ${slotInfo}`
       );
     } catch (error) {
+      await chats.deleteOne({ chatId: chat.chatId });
       console.error(`Failed to send message to chat ${chat.chatId}:`, error);
     }
   }
