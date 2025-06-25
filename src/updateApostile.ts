@@ -64,7 +64,7 @@ export const updateApostileInfo = async (days: number = 10) => {
   });
   const page = await browser.newPage();
 
-  await page.goto("https://dkko.edu.gov.by/apostil", { waitUntil: "load" });
+  await page.goto("https://dkko.edu.gov.by/apostil", { waitUntil: "domcontentloaded", timeout: 0 });
   await page.setViewport({ width: 1080, height: 1024 });
 
   const { meta } = await connectToMongo();
