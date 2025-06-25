@@ -92,6 +92,7 @@ export const updateApostileInfo = async (days: number = 10) => {
     );
   } catch (error) {
     console.error("Error updating apostile info:", error);
-    await browser.close();
   }
+
+  await browser.close();
 };
